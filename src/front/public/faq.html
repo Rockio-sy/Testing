@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FAQ System</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .card {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .answer-section {
+      margin-top: 15px;
+      padding: 10px;
+      background: #f9f9f9;
+      border-radius: 4px;
+    }
+    button {
+      background: #4CAF50;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #45a049;
+    }
+    textarea {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 4px;
+      border: 1px solid #ddd;
+    }
+    .new-question-form {
+      margin-bottom: 30px;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>FAQ System</h1>
+
+  <!-- For Students: New Question Form -->
+  <div id="newQuestionForm" class="new-question-form card" style="display: none;">
+    <h2>Ask a Question</h2>
+    <textarea id="newQuestionText" placeholder="Type your question here..."></textarea>
+    <button onclick="submitQuestion()">Submit Question</button>
+  </div>
+
+  <!-- Questions List -->
+  <div id="questionsList"></div>
+</div>
+
+<script>
+  // Get user role from localStorage
+  const userRole = localStorage.getItem('userRole');
+
+  // Show new question form only for students
+  if (userRole === 'STUDENT') {
+    document.getElementById('newQuestionForm').style.display = 'block';
+  }
+
+  // Load all questions and answers
+  loadQuestions();
+
+  async function loadQuestions() {
+    try {
+      // Fetch all questions
+      const questionsResponse = await fetch('http://localhost:8080/FAQ/all');
+      const questions = await questionsResponse.json();
+
+      const questionsList = document.getElementById('questionsList');
+      questionsList.innerHTML = '';
+
+      // Process each question
+      for (const question of questions) {
+        // Fetch answer for this question
+        let answer = null;
+        try {
+          const answerResponse = await fetch(`http://localhost:8080/answer/for?questionID=${question.id}`);
+          if (answerResponse.ok) {
+            answer = await answerResponse.json();
+          }
+        } catch (e) { console.error(e); }
+
+        // Create question card
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+                        <h3>Question from Student ${question.studentID.substring(0, 8)}</h3>
+                        <p>${question.question}</p>
+                        <div class="answer-section">
+                            ${renderAnswerSection(question.id, answer)}
+                        </div>
+                    `;
+        questionsList.appendChild(card);
+      }
+    } catch (error) {
+      console.error('Error loading questions:', error);
+    }
+  }
+
+  function renderAnswerSection(questionId, answer) {
+    if (userRole === 'TEACHER') {
+      if (answer) {
+        return `
+                        <h4>Your Answer:</h4>
+                        <p>${answer.answer}</p>
+                    `;
+      } else {
+        return `
+                        <textarea id="answer-${questionId}" placeholder="Write your answer..."></textarea>
+                        <button onclick="submitAnswer('${questionId}')">Submit Answer</button>
+                    `;
+      }
+    } else { // Student view
+      return answer
+              ? `<h4>Teacher's Answer:</h4><p>${answer.answer}</p>`
+              : '<p>No answer yet</p>';
+    }
+  }
+
+  async function submitAnswer(questionId) {
+    const answerText = document.getElementById(`answer-${questionId}`).value.trim();
+    if (!answerText) return alert('Answer cannot be empty!');
+
+    try {
+      const teacherId = '4449570d-1a64-4892-9698-fbd96180845b'; // You'll need to implement this
+      const answerData = {
+        questionID: questionId,
+        teacherID: teacherId,
+        answer: answerText
+      };
+
+      const response = await fetch('http://localhost:8080/answer/new', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(answerData)
+      });
+
+      if (response.ok) {
+        loadQuestions(); // Refresh the list
+      } else {
+        alert('Failed to submit answer');
+      }
+    } catch (error) {
+      console.error('Error submitting answer:', error);
+    }
+  }
+
+  async function submitQuestion() {
+    const questionText = document.getElementById('newQuestionText').value.trim();
+    if (!questionText) return alert('Question cannot be empty!');
+
+    try {
+      const studentId = '869556ac-6f88-4b8b-bb8d-15072528bd3a'; // You'll need to implement this
+      const questionData = {
+        studentID: studentId,
+        question: questionText
+      };
+
+      const response = await fetch('http://localhost:8080/FAQ/new', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(questionData)
+      });
+
+      if (response.ok) {
+        document.getElementById('newQuestionText').value = '';
+        loadQuestions(); // Refresh the list
+      } else {
+        alert('Failed to submit question');
+      }
+    } catch (error) {
+      console.error('Error submitting question:', error);
+    }
+  }
+</script>
+</body>
+</html>

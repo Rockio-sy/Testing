@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submission Details</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<nav class="navbar">
+    <div class="container navbar-container">
+        <h1>Submission Details</h1>
+        <div class="nav-links">
+            <button id="backBtn" class="btn btn-secondary">Back</button>
+            <button id="gradeBtn" class="btn btn-primary">Grade</button>
+        </div>
+    </div>
+</nav>
+
+<main class="container">
+    <div id="submissionDetails" class="card"></div>
+
+    <!-- Grading Form (Initially Hidden) -->
+    <div id="gradingForm" class="card hidden mt-3">
+        <h3>Grade Submission</h3>
+        <form id="gradeForm">
+            <div class="form-group">
+                <label for="gradeValue" class="form-label">Grade</label>
+                <input type="number" id="gradeValue" class="form-control" min="0" max="100" step="0.1" required>
+            </div>
+            <div class="form-group">
+                <label for="feedback" class="form-label">Feedback</label>
+                <textarea id="feedback" class="form-control" rows="4" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit Grade</button>
+            <button type="button" id="cancelGrade" class="btn btn-outline ml-2">Cancel</button>
+        </form>
+    </div>
+</main>
+
+<script src="/js/main.js" type="module"></script>
+</body>
+</html>
