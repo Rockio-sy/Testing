@@ -1,75 +1,71 @@
-# .github/workflows/ci.yml
 name: CI
 
 on:
-  push: { branches: [ main ] }
+  push:
+    branches: [ main ]
   pull_request:
 
 jobs:
   unit:
     runs-on: ubuntu-latest
-    defaults: { run: { working-directory: src/academo } }
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
-        with: { distribution: temurin, java-version: 21, cache: maven }
+        with: { distribution: 'temurin', java-version: '21' }
       - name: Unit tests (H2)
         run: |
-          rm -rf target
           mvn -B clean test \
-            -Dgroups=unit -DexcludedGroups=db \
             -Dspring.profiles.active=unit \
+            -Dgroups=unit -DexcludedGroups=db \
             -Dallure.results.directory=target/allure-results
-      - uses: actions/upload-artifact@v4
+      - name: Upload surefire reports
         if: always()
+        uses: actions/upload-artifact@v4
         with:
-          name: unit-reports
-          path: |
-            src/academo/target/surefire-reports
-            src/academo/target/allure-results
+          name: surefire-reports-unit
+          path: target/surefire-reports
 
-  db:
-    needs: unit
+  integration:
     runs-on: ubuntu-latest
-    defaults: { run: { working-directory: src/academo } }
+    needs: unit
+    if: ${{ success() }}   # skip if unit failed
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
-        with: { distribution: temurin, java-version: 21, cache: maven }
-      - name: DB tests (H2 classic)
+        with: { distribution: 'temurin', java-version: '21' }
+      - name: Classic integration (H2)
         run: |
-          rm -rf target/allure-results target/site/allure-maven-plugin
-          mvn -B test -Dgroups=db -Dspring.profiles.active=unit \
-             -Dallure.results.directory=target/allure-results
-      - uses: actions/upload-artifact@v4
+          mvn -B test \
+            -Dspring.profiles.active=unit \
+            -Dgroups=db \
+            -Dallure.results.directory=target/allure-results
+      - name: Upload surefire reports
         if: always()
+        uses: actions/upload-artifact@v4
         with:
-          name: db-reports
-          path: |
-            src/academo/target/surefire-reports
-            src/academo/target/allure-results
+          name: surefire-reports-integration
+          path: target/surefire-reports
 
   e2e:
-    needs: db
     runs-on: ubuntu-latest
-    defaults: { run: { working-directory: src/academo } }
+    needs: integration
+    if: ${{ success() }}   # skip if integration failed
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
-        with: { distribution: temurin, java-version: 21, cache: maven }
-      - name: E2E (Testcontainers + Postgres)
-        env:
-          TESTCONTAINERS_RYUK_DISABLED: "true"
-          TESTCONTAINERS_CHECKS_DISABLE: "true"
-          DOCKER_HOST: unix:///var/run/docker.sock
+        with: { distribution: 'temurin', java-version: '21' }
+      - name: Enable Docker (for Testcontainers)
+        uses: docker/setup-buildx-action@v3
+      - name: E2E (failsafe; Testcontainers Postgres)
         run: |
           mvn -B clean test-compile \
-             -Dit.test=MvpE2EITCase \
-             failsafe:integration-test failsafe:verify
-      - uses: actions/upload-artifact@v4
+            -Dit.test=MvpE2EITCase \
+            failsafe:integration-test failsafe:verify
+      - name: Upload failsafe + logs
         if: always()
+        uses: actions/upload-artifact@v4
         with:
-          name: e2e-reports
+          name: e2e-artifacts
           path: |
-            src/academo/target/failsafe-reports
-            src/academo/target/e2e-http.log
+            target/failsafe-reports
+            target/e2e-http.log

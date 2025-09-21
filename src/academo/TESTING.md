@@ -64,7 +64,6 @@ mvn test -Dgroups=db
 ```
 
 
-
 # DO NOT RUN IT, IT WILL TAKE LONG TIME
 ```bash
 docker build -f Dockerfile.test -t academo-tests:latest .
@@ -88,3 +87,9 @@ docker run --rm \
     - `unit-reports`: surefire + Allure results
     - `db-reports`: surefire + Allure results
     - `e2e-reports`: failsafe + `target/e2e-http.log`
+
+# Running the endpoints in web browser
+```bash
+mitmweb -r captures/academo.mitm -p 8082 --web-port 9090
+```
+
