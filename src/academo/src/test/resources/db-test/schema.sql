@@ -33,7 +33,7 @@ CREATE TABLE submission (
 
 CREATE TABLE grade (
   id UUID DEFAULT (RANDOM_UUID()) PRIMARY KEY,
-  grade_value DOUBLE PRECISION NOT NULL,
+  "value" DOUBLE PRECISION NOT NULL,
   feedback VARCHAR(500),
   submission_id UUID REFERENCES submission(id),
   removed_at TIMESTAMP

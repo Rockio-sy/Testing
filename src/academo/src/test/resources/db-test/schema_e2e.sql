@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS submission (
 
 CREATE TABLE IF NOT EXISTS grade (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    grade_value DOUBLE PRECISION NOT NULL,  -- <— rename to match code expectation
+    "value" DOUBLE PRECISION NOT NULL,  -- <— rename to match code expectation
     feedback VARCHAR(500),
     submission_id UUID,
     removed_at TIMESTAMP,

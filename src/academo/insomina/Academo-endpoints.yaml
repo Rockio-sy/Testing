@@ -1,0 +1,371 @@
+type: spec.insomnia.rest/5.0
+name: Academo
+meta:
+  id: wrk_79b00a891bd04424b6726c7fdeae65c6
+  created: 1758451972656
+  modified: 1758451972656
+  description: ""
+collection:
+  - url: "{{ base_url }}/admin/new"
+    name: Create Teacher
+    meta:
+      id: req_2263052d4cf842c18ef269e7ee3eace7
+      created: 1758452073748
+      modified: 1758452215453
+      isPrivate: false
+      description: ""
+      sortKey: -1758452073748
+    method: POST
+    body:
+      mimeType: application/json
+      text: >
+        {"fullName":"Alice
+        Teacher","username":"teacher_alicea","password":"P@ss","role":"TEACHER"}
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: User-Agent
+        value: insomnia/11.2.0
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{base_url}}/admin/new"
+    name: Create student
+    meta:
+      id: req_8e714db95fae476b85ac18cd1efa999f
+      created: 1758452217436
+      modified: 1758452414424
+      isPrivate: false
+      description: ""
+      sortKey: -1758452217436
+    method: POST
+    body:
+      mimeType: application/json
+      text: >
+        {"fullName":"Bob
+        Student","username":"student_boba","password":"P@ss","role":"STUDENT"}
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: User-Agent
+        value: insomnia/11.2.0
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ base_url }}/task/new"
+    name: Create Task
+    meta:
+      id: req_d938d3a7455b45848ec38f35f39d67fa
+      created: 1758452417948
+      modified: 1758452471055
+      isPrivate: false
+      description: ""
+      sortKey: -1758452417948
+    method: POST
+    body:
+      mimeType: application/json
+      text: |
+        {
+          "title":"HW 1",
+          "description":"Solve it",
+          "teacherId":"{{ teacherId }}",
+          "studentId":"{{ studentId }}"
+        }
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: User-Agent
+        value: insomnia/11.2.0
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ base_url }}/submit/new"
+    name: Submit
+    meta:
+      id: req_ce4799b437fb43819ff6853a431a7981
+      created: 1758452501768
+      modified: 1758452535758
+      isPrivate: false
+      description: ""
+      sortKey: -1758452501768
+    method: POST
+    body:
+      mimeType: application/json
+      text: |
+        {
+          "teacherId":"{{ teacherId }}",
+          "studentId":"{{ studentId }}",
+          "taskId":"{{ taskId }}",
+          "answer":"My new solution"
+        }
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: User-Agent
+        value: insomnia/11.2.0
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ base_url }}/FAQ/new"
+    name: Ask Question
+    meta:
+      id: req_0eff644dc99640edb6511a14969222f3
+      created: 1758452572684
+      modified: 1758452604697
+      isPrivate: false
+      description: ""
+      sortKey: -1758452572684
+    method: POST
+    body:
+      mimeType: application/json
+      text: |
+        {
+          "studentID":"{{ studentId }}",
+          "question":"When is the deadline for HW 3?"
+        }
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: User-Agent
+        value: insomnia/11.2.0
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ base_url }}/answer/new"
+    name: Answer
+    meta:
+      id: req_8533db892f6d4b16baae30720ab38e3f
+      created: 1758452692653
+      modified: 1758452712349
+      isPrivate: false
+      description: ""
+      sortKey: -1758452692653
+    method: POST
+    body:
+      mimeType: application/json
+      text: |
+        {
+          "questionID":"{{ questionId }}",
+          "teacherID":"{{ teacherId }}",
+          "answer":"Friday 23:59"
+        }
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: User-Agent
+        value: insomnia/11.2.0
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ base_url }}/admin/get-id?username=student_boba"
+    name: Get Students
+    meta:
+      id: req_4c482745d62345738d09fa5fa2977776
+      created: 1758452716221
+      modified: 1758452778592
+      isPrivate: false
+      description: ""
+      sortKey: -1758452716221
+    method: GET
+    headers:
+      - name: User-Agent
+        value: insomnia/11.2.0
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ base_url }}/admin/get-id?username=teacher_alicea"
+    name: Get teachers
+    meta:
+      id: req_6502292c14a24525aef2bb077d07d2dc
+      created: 1758452717974
+      modified: 1758452767412
+      isPrivate: false
+      description: ""
+      sortKey: -1758452717974
+    method: GET
+    headers:
+      - name: User-Agent
+        value: insomnia/11.2.0
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ base_url }}/FAQ/all"
+    name: Get questions
+    meta:
+      id: req_ac09fbbe5b1042f98e3c61d59f100cc1
+      created: 1758452718631
+      modified: 1758453725825
+      isPrivate: false
+      description: ""
+      sortKey: -1758452718631
+    method: GET
+    headers:
+      - name: User-Agent
+        value: insomnia/11.2.0
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ base_url }}/answer/for?questionID={{ _.questionId }}"
+    name: Get answer
+    meta:
+      id: req_5a5d53434205461f93ca69d854807fc2
+      created: 1758452718933
+      modified: 1758453767261
+      isPrivate: false
+      description: ""
+      sortKey: -1758452718933
+    method: GET
+    headers:
+      - name: User-Agent
+        value: insomnia/11.2.0
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ base_url }}/submit/all"
+    name: Get submission
+    meta:
+      id: req_06384d55d4f84fddb49e44afacbc40bd
+      created: 1758452745416
+      modified: 1758453735439
+      isPrivate: false
+      description: ""
+      sortKey: -1758452745416
+    method: GET
+    headers:
+      - name: User-Agent
+        value: insomnia/11.2.0
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ base_url }}/task/all"
+    name: Get tasks
+    meta:
+      id: req_1bc0751f356042a3a8c7b9f18ce2d201
+      created: 1758452791209
+      modified: 1758452802018
+      isPrivate: false
+      description: ""
+      sortKey: -1758452791209
+    method: GET
+    headers:
+      - name: User-Agent
+        value: insomnia/11.2.0
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ base_url }}/grade/new"
+    name: Grade task
+    meta:
+      id: req_89d0e074e65d4e77ab42c0ec450fbe8c
+      created: 1758452834177
+      modified: 1758452852025
+      isPrivate: false
+      description: ""
+      sortKey: -1758452834177
+    method: POST
+    body:
+      mimeType: application/json
+      text: |
+        {
+          "value": 9.5,
+          "feedback": "Well done",
+          "submissionId": "{{ submissionId }}"
+        }
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: User-Agent
+        value: insomnia/11.2.0
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+cookieJar:
+  name: Default Jar
+  meta:
+    id: jar_c297f4b976c342c1045f2ab868cac06b82939b85
+    created: 1758451972673
+    modified: 1758451972673
+environments:
+  name: Base Environment
+  meta:
+    id: env_c297f4b976c342c1045f2ab868cac06b82939b85
+    created: 1758451972672
+    modified: 1758452687594
+    isPrivate: false
+  data:
+    base_url: http://localhost:8080
+    teacherId: 46505a9e-e959-436a-86f0-c0996b10ae58
+    studentId: 8c7974d7-7df0-4584-bedf-d75e887d5bfb
+    taskId: a9a5366f-6bd1-4bd7-9447-3368ff360ed1
+    submissionId: c6eac4b6-6040-4414-94ca-8c3fdca9dbf4
+    questionId: 937eff0e-4000-4c0d-a7c2-527216d3288d
+spec:
+  meta:
+    id: spc_990ea4fa39e844fea4c88727f2331fbd
+    created: 1758451972671
+    modified: 1758451972671

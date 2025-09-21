@@ -4,6 +4,7 @@ import org.academo.academo.model.Grade;
 import org.academo.academo.repository.GradeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
@@ -23,7 +24,8 @@ public class GradeRepositoryImpl implements GradeRepository {
 
     @Override
     public void save(Grade grade) {
-        String sql = "INSERT INTO grade (grade_value, feedback, submission_id)" + "VALUES (?, ?, ?)";
+        // Quote the column name so it works with H2 ("value") and Postgres
+        String sql = "INSERT INTO grade (\"value\", feedback, submission_id) VALUES (?, ?, ?)";
         jdbcTemplate.update(sql, grade.getValue(), grade.getFeedback(), grade.getSubmissionId());
     }
 
@@ -50,7 +52,8 @@ public class GradeRepositoryImpl implements GradeRepository {
         public Grade mapRow(ResultSet rs, int rowNum) throws SQLException {
             Grade grade = new Grade();
             grade.setId((UUID) rs.getObject("id"));
-            grade.setValue((double) rs.getFloat("grade_value"));
+            // Prefer getDouble over getFloat->double cast
+            grade.setValue(rs.getDouble("value"));
             grade.setFeedback(rs.getString("feedback"));
             grade.setSubmissionId((UUID) rs.getObject("submission_id"));
             return grade;
