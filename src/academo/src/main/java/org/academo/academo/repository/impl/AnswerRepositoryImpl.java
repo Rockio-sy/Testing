@@ -13,7 +13,7 @@ import java.sql.SQLException;
 import java.util.UUID;
 
 @Repository
-//@ConditionalOnProperty(name = "app.database.type", havingValue = "postgres")
+@ConditionalOnProperty(name = "app.database.type", havingValue = "postgres")
 public class AnswerRepositoryImpl implements AnswerRepository {
     @Autowired
     private JdbcTemplate jdbcTemplate;

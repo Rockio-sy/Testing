@@ -15,7 +15,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-//@ConditionalOnProperty(name = "app.database.type", havingValue = "postgres")
+@ConditionalOnProperty(name = "app.database.type", havingValue = "postgres")
 public class TaskRepositoryImpl implements TaskRepository {
     @Autowired
     private JdbcTemplate jdbcTemplate;

@@ -1,0 +1,93 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: academo
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U postgres -d academo"
+          --health-interval=3s
+          --health-timeout=3s
+          --health-retries=20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+
+      - name: Unit tests (H2)
+        run: >
+          mvn -B clean test
+          -Dspring.profiles.active=unit
+          -Dgroups=unit
+          -DexcludedGroups=db
+          -Dallure.results.directory=target/allure-results
+
+      - name: Upload unit surefire reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-unit
+          path: target/surefire-reports
+
+      - name: Classic DB tests (H2)
+        if: ${{ success() }}
+        run: >
+          mvn -B test
+          -Dspring.profiles.active=unit
+          -Dgroups=db
+          -Dallure.results.directory=target/allure-results
+
+      - name: Upload classic-db surefire reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-db
+          path: target/surefire-reports
+
+      - name: E2E (Testcontainers Postgres)
+        if: ${{ success() }}
+        run: >
+          mvn -B clean test-compile
+          -Dit.test=MvpE2EITCase
+          failsafe:integration-test failsafe:verify
+
+      - name: Upload e2e failsafe reports & HTTP log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: failsafe-e2e
+          path: |
+            target/failsafe-reports
+            target/e2e-http.log
+
+      - name: Allure report (zip results)
+        if: always()
+        run: |
+          mvn -q io.qameta.allure:allure-maven:2.12.0:report || true
+          mkdir -p artifacts
+          [ -d target/site/allure-maven-plugin ] && \
+            (cd target/site && zip -r ../../artifacts/allure-report.zip allure-maven-plugin) || true
+
+      - name: Upload Allure report artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-report
+          path: artifacts/allure-report.zip

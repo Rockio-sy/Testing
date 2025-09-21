@@ -15,7 +15,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-//@ConditionalOnProperty(name = "app.database.type", havingValue = "postgres")
+@ConditionalOnProperty(name = "app.database.type", havingValue = "postgres")
 public class UserRepositoryImpl implements UserRepository {
     @Autowired
     private JdbcTemplate jdbcTemplate;

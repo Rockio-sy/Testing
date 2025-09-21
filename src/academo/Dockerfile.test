@@ -1,0 +1,15 @@
+# Runs your full test stack inside one container
+FROM maven:3.9.9-eclipse-temurin-21
+
+WORKDIR /app
+COPY . /app
+
+# Cache deps at build time (will be fast after the first build)
+RUN mvn -q -DskipTests dependency:go-offline
+
+ENV TESTCONTAINERS_CHECKS_DISABLE=true
+ENV DOCKER_HOST=unix:///var/run/docker.sock
+ENV MAVEN_OPTS="-XX:+UnlockExperimentalVMOptions -XX:+UseContainerSupport"
+
+RUN chmod +x ./scripts/ci-runner.sh
+CMD ["./scripts/ci-runner.sh"]

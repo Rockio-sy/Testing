@@ -1,0 +1,7 @@
+-- Reset all app tables (UUID PKs don't use sequences, RESTART IDENTITY is harmless)
+TRUNCATE TABLE answers CASCADE;
+TRUNCATE TABLE questions CASCADE;
+TRUNCATE TABLE grade CASCADE;
+TRUNCATE TABLE submission CASCADE;
+TRUNCATE TABLE task CASCADE;
+TRUNCATE TABLE users CASCADE;
