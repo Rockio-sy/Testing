@@ -48,13 +48,43 @@ class MvpE2EITCase extends PostgresITBase {
 
     @BeforeEach
     void setup() throws Exception {
-        RestAssured.baseURI = "http://localhost";
-        RestAssured.port = port;
+        // base URI and port: allow override via env or system properties for CI
+        // Priority: system property -> env var -> default (localhost + @LocalServerPort)
+        String baseUri = System.getProperty("e2e.base.uri", System.getenv().getOrDefault("E2E_BASE_URI", "http://localhost"));
+        String basePortProp = System.getProperty("e2e.base.port", System.getenv().get("E2E_BASE_PORT"));
 
-        // send all test HTTP/HTTPS through mitmproxy running locally
-        RestAssured.proxy("127.0.0.1", 8082);
-        // allow mitmproxy self-signed certs to be accepted by RestAssured
-        RestAssured.useRelaxedHTTPSValidation();
+        RestAssured.baseURI = baseUri;
+
+        if (basePortProp != null && !basePortProp.isBlank()) {
+            try {
+                RestAssured.port = Integer.parseInt(basePortProp);
+            } catch (NumberFormatException ex) {
+                // fallback to @LocalServerPort
+                RestAssured.port = port;
+            }
+        } else {
+            // default: use the Spring injected random port
+            RestAssured.port = port;
+        }
+
+        // Proxy config: enable only when explicitly provided via system prop / env var
+        // Example: -Dmitm.proxy.host=127.0.0.1 -Dmitm.proxy.port=8082  OR export MITM_PROXY_HOST, MITM_PROXY_PORT
+        String proxyHost = System.getProperty("mitm.proxy.host", System.getenv().get("MITM_PROXY_HOST"));
+        String proxyPort = System.getProperty("mitm.proxy.port", System.getenv().get("MITM_PROXY_PORT"));
+
+        if (proxyHost != null && !proxyHost.isBlank() && proxyPort != null && !proxyPort.isBlank()) {
+            try {
+                int p = Integer.parseInt(proxyPort);
+                RestAssured.proxy(proxyHost, p);
+                RestAssured.useRelaxedHTTPSValidation(); // allow mitmproxy self-signed certs
+                System.out.printf("E2E: using proxy %s:%d%n", proxyHost, p);
+            } catch (NumberFormatException ignore) {
+                System.out.println("E2E: invalid proxy port, skipping proxy setup");
+            }
+        } else {
+            // No proxy configured - keep original behavior
+            System.out.println("E2E: no proxy configured, direct requests");
+        }
 
         PrintStream log = new PrintStream("target/e2e-http.log");
         RestAssured.replaceFiltersWith(new RequestLoggingFilter(log), new ResponseLoggingFilter(log));
