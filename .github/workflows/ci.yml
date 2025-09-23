@@ -1,36 +1,63 @@
+# .github/workflows/ci.yml
 name: CI
 on:
   push: { branches: [ main ] }
   pull_request:
 
 jobs:
-  tests:
+  tests-in-docker:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: src/academo   # <-- change if your pom.xml is elsewhere
+    env:
+      IMAGE_NAME: academo-tests:latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: JDK 21
-        uses: actions/setup-java@v4
+      # Optional but speeds up builds a lot
+      - name: Cache Maven repo (host)
+        uses: actions/cache@v4
         with:
-          distribution: temurin
-          java-version: 21
-          cache: maven
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-m2-
 
-      - name: Unit tests (H2)
+      # Build the Docker image that contains your project + Maven + ci-runner deps
+      - name: Build test image
+        working-directory: src/academo
         run: |
-          rm -rf target
-          mvn -B clean test \
-            -Dgroups=unit -DexcludedGroups=db \
-            -Dspring.profiles.active=unit
+          docker build -f Dockerfile.test -t "$IMAGE_NAME" .
 
+      # ====================== UNIT ======================
+      - name: UNIT tests (H2)
+        working-directory: src/academo
+        run: |
+          mkdir -p target
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -v "$HOME/.m2:/root/.m2" \
+            -v "$PWD/target:/app/target" \
+            "$IMAGE_NAME" \
+            bash -lc 'mvn -B clean test -Dgroups=unit -DexcludedGroups=db -Dspring.profiles.active=unit'
+
+      # ======================= DB =======================
       - name: DB tests (H2 classic)
+        working-directory: src/academo
         run: |
-          rm -rf target/allure-results target/site/allure-maven-plugin || true
-          mvn -B test -Dgroups=db -Dspring.profiles.active=unit
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -v "$HOME/.m2:/root/.m2" \
+            -v "$PWD/target:/app/target" \
+            "$IMAGE_NAME" \
+            bash -lc 'rm -rf target/allure-results target/site/allure-maven-plugin || true && mvn -B test -Dgroups=db -Dspring.profiles.active=unit'
 
-      - name: E2E tests
+      # ====================== E2E =======================
+      - name: E2E tests (Failsafe + Testcontainers)
+        working-directory: src/academo
         run: |
-          mvn -B -Dit.test=MvpE2EITCase failsafe:integration-test failsafe:verify
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -v "$HOME/.m2:/root/.m2" \
+            -v "$PWD/target:/app/target" \
+            "$IMAGE_NAME" \
+            bash -lc 'mvn -B -Dit.test=MvpE2EITCase failsafe:integration-test failsafe:verify'
