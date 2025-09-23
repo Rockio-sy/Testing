@@ -1,85 +1,36 @@
-# .github/workflows/ci.yml
 name: CI
-
 on:
   push: { branches: [ main ] }
   pull_request:
 
 jobs:
-  unit:
+  tests:
     runs-on: ubuntu-latest
-    defaults: { run: { working-directory: src/academo } }
+    defaults:
+      run:
+        working-directory: src/academo   # <-- change if your pom.xml is elsewhere
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
-        with: { distribution: temurin, java-version: 21, cache: maven }
+
+      - name: JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+
       - name: Unit tests (H2)
         run: |
           rm -rf target
           mvn -B clean test \
             -Dgroups=unit -DexcludedGroups=db \
-            -Dspring.profiles.active=unit \
-            -Dallure.results.directory=target/allure-results
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: unit-reports
-          path: |
-            src/academo/target/surefire-reports
-            src/academo/target/allure-results
+            -Dspring.profiles.active=unit
 
-  db:
-    needs: unit
-    runs-on: ubuntu-latest
-    defaults: { run: { working-directory: src/academo } }
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
-        with: { distribution: temurin, java-version: 21, cache: maven }
       - name: DB tests (H2 classic)
         run: |
-          rm -rf target/allure-results target/site/allure-maven-plugin
-          mvn -B test -Dgroups=db -Dspring.profiles.active=unit \
-             -Dallure.results.directory=target/allure-results
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: db-reports
-          path: |
-            src/academo/target/surefire-reports
-            src/academo/target/allure-results
+          rm -rf target/allure-results target/site/allure-maven-plugin || true
+          mvn -B test -Dgroups=db -Dspring.profiles.active=unit
 
-  e2e:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Start mitmproxy container
+      - name: E2E tests
         run: |
-          docker run -d --rm --name mitmproxy \
-            -p 8082:8082 -p 9090:9090 \
-            mitmproxy/mitmproxy:latest mitmweb --web-port 9090 -p 8082 -w /captures/academo.mitm
-      - name: Wait for mitmproxy
-        run: |
-          for i in $(seq 1 10); do
-            curl -sS http://127.0.0.1:9090/ || sleep 1
-          done
-
-      - name: Set up JDK and Maven
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: 21
-
-      - name: Run tests with proxy
-        env:
-          MITM_PROXY_HOST: 127.0.0.1
-          MITM_PROXY_PORT: 8082
-        run: mvn -B -Dit.test=MvpE2EITCase -DskipTests=false failsafe:integration-test failsafe:verify
-
-      - name: Upload mitm capture
-        run: docker cp mitmproxy:/captures/academo.mitm ./captures/ || true
-      - uses: actions/upload-artifact@v4
-        with:
-          name: e2e-captures
-          path: captures/academo.mitm
+          mvn -B -Dit.test=MvpE2EITCase failsafe:integration-test failsafe:verify
