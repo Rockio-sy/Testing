@@ -23,17 +23,14 @@ import static org.hamcrest.Matchers.*;
 @SpringBootTest(
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         properties = {
-                // Use Testcontainers PG (in PostgresITBase), not H2, and no Flyway (we use @Sql schema)
                 "spring.flyway.enabled=false",
                 "spring.sql.init.mode=never",
                 "spring.test.database.replace=NONE",
                 "spring.datasource.driver-class-name=org.postgresql.Driver",
 
-                // Disable Mongo for E2E
                 "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration," +
                         "org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration",
 
-                // Optional: quiet Mongo driver logs
                 "logging.level.org.mongodb.driver=ERROR"
         }
 )
@@ -53,9 +50,16 @@ class MvpE2EITCase extends PostgresITBase {
     void setup() throws Exception {
         RestAssured.baseURI = "http://localhost";
         RestAssured.port = port;
+
+        // send all test HTTP/HTTPS through mitmproxy running locally
+        RestAssured.proxy("127.0.0.1", 8082);
+        // allow mitmproxy self-signed certs to be accepted by RestAssured
+        RestAssured.useRelaxedHTTPSValidation();
+
         PrintStream log = new PrintStream("target/e2e-http.log");
         RestAssured.replaceFiltersWith(new RequestLoggingFilter(log), new ResponseLoggingFilter(log));
     }
+
 
     // =================== Scenario 1: Admin creates Teacher & Student; Teacher creates a Task ===================
     @Test
